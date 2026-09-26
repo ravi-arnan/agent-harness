@@ -1,0 +1,62 @@
+{
+  // Personal machine extras.
+  //
+  // Dropped from the previous config on purpose: they were enabled but could
+  // never work here because the binary or the placeholder was missing.
+  // ecc-memory-mcp, longhand, omega-memory, uvx, fal-ai-mcp-server,
+  // token-optimizer-mcp, evalview, squish are all not installed; jira,
+  // confluence, github, firecrawl, exa-web-search, browserbase and browser-use
+  // still carry YOUR_*_HERE placeholders; filesystem pointed at "/path/to/your
+  // /projects"; ito-compute pointed at "/absolute/path/to/...";
+  // supabase used --project-ref=YOUR_PROJECT_REF.
+  // Re-add any of them one at a time, verified with `agy mcp list`.
+  "mcpServers": {
+    "cloudflare-observability": {
+      "type": "http",
+      "url": "https://observability.mcp.cloudflare.com/mcp",
+      "description": "Cloudflare observability and logs"
+    },
+    "cloudflare-workers-builds": {
+      "type": "http",
+      "url": "https://builds.mcp.cloudflare.com/mcp",
+      "description": "Cloudflare Workers builds"
+    },
+    "cloudflare-workers-bindings": {
+      "type": "http",
+      "url": "https://bindings.mcp.cloudflare.com/mcp",
+      "description": "Cloudflare Workers bindings"
+    },
+    "vercel": {
+      "type": "http",
+      "url": "https://mcp.vercel.com",
+      "description": "Vercel deployments and projects"
+    },
+    "clickhouse": {
+      "type": "http",
+      "url": "https://mcp.clickhouse.cloud/mcp",
+      "description": "ClickHouse analytics queries"
+    },
+    "magic": {
+      "command": "npx",
+      "args": ["-y", "@magicuidesign/mcp@latest"],
+      "description": "Magic UI components"
+    },
+    "laraplugins": {
+      "type": "http",
+      "url": "https://laraplugins.io/mcp/plugins",
+      "description": "Laravel plugin discovery"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp", "--browser", "chrome"],
+      "description": "Browser automation. Heavy on this laptop, enable only when needed."
+    },
+    // Multi-agent orchestration over a local daemon. Harmless when the daemon
+    // is not running, but useless then too.
+    "devfleet": {
+      "type": "http",
+      "url": "http://localhost:18801/mcp",
+      "description": "Dispatch parallel agents in isolated worktrees (local daemon)"
+    }
+  }
+}

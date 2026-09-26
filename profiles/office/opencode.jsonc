@@ -1,0 +1,17 @@
+{
+  // Office profile. Deliberately almost empty.
+  //
+  // opencode is authenticated with the employer account via
+  // `opencode auth login`, and credentials land in
+  // ~/.local/share/opencode/auth.json. Wiring the model explicitly here would
+  // hardcode a provider that may not be entitled on that account, so this
+  // profile defines no `model`, no `small_model` and no `provider` block:
+  // opencode resolves them from whatever the login granted.
+  //
+  // After logging in, run `/models` in the TUI. If you want a fixed default
+  // for the office box, add it to ~/.config/harness/env as OFFICE_MODEL and
+  // reference it here as "model": "{{OFFICE_MODEL}}".
+  //
+  // No personal provider keys, no local 9router, no personal tunnels. That is
+  // the whole point of this profile.
+}

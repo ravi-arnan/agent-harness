@@ -1,0 +1,24 @@
+# Machine-local only. The kit is public; nothing personal belongs in it.
+profiles/*.local.*
+profiles/**/*.local.*
+.env
+.env.*
+*.key
+*.pem
+secrets/
+
+# Never commit a backup of a real config.
+*.bak
+*.bak-*
+*~
+harness-backup-*/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

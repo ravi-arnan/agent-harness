@@ -1,0 +1,186 @@
+{
+  // Personal profile: the machine that owns the local 9router service and the
+  // free-provider keys under ~/.config/opencode/secrets/. Nothing in this file
+  // is a secret; every key is a {file:...} reference resolved at runtime.
+  //
+  // Probe history for every provider below, including the models that died and
+  // why, is in harnesses/opencode/NOTES.md. Read that before re-enabling
+  // anything commented out here.
+
+  // Otak utama. Awas: prefix harus ID provider penuh
+  // (experiential-anthropic), bukan "experiential/" yang tidak resolve.
+  // Judul sesi, summary dan compaction jangan makan model utama.
+  "model": "experiential-anthropic/gpt-5.6-luna",
+  "small_model": "opencode/muse-spark-1.3-contributor-free",
+
+  "provider": {
+    "hcnsec": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "HCN SEC",
+      "options": {
+        "baseURL": "https://api.hcnsec.cn/v1",
+        "apiKey": "{file:~/.config/opencode/secrets/hcnsec.key}"
+      },
+      // Dipakai round-robin via plugin/hcnsec-rotate.js (pool di
+      // secrets/hcnsec.keys). secrets/hcnsec.key = key pertama sebagai fallback.
+      "models": {
+        "auto": { "name": "Auto (router)" }
+      }
+    },
+    "makers": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "EdgeOne Makers Models",
+      "options": {
+        "baseURL": "https://ai-gateway.edgeone.link/v1",
+        "apiKey": "{file:~/.config/opencode/secrets/makers.key}"
+      },
+      "models": {
+        "deepseek-v4-flash": {
+          "id": "@makers/deepseek-v4-flash",
+          "name": "DeepSeek V4 Flash (EdgeOne Makers)"
+        },
+        "deepseek-v4-pro": {
+          "id": "@makers/deepseek-v4-pro",
+          "name": "DeepSeek V4 Pro (EdgeOne Makers)"
+        }
+      }
+    },
+    "dahl": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Dahl Inference",
+      "options": {
+        "baseURL": "https://inference.dahl.global/v1",
+        "apiKey": "{file:~/.config/opencode/secrets/dahl.key}"
+      },
+      "models": {
+        "deepseek-ai/DeepSeek-V4-Flash-0731": { "name": "DeepSeek V4 Flash (1M)" }
+      }
+    },
+    "9router": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "9router (lokal)",
+      "options": {
+        "baseURL": "http://localhost:20128/v1",
+        "apiKey": "{file:~/.config/opencode/secrets/9router.key}"
+      },
+      // Service lokal, bukan cloud. Kalau mati: systemctl --user start 9router.
+      // Catatan: model oc/* sering TIDAK muncul di GET /v1/models 9router
+      // padahal routingnya jalan, jadi harus didaftarkan manual di sini.
+      "models": {
+        "gemini/gemini-3.7-flash": { "name": "Gemini 3.7 Flash (1M, vision)" },
+        "gemini/gemini-3.6-flash": { "name": "Gemini 3.6 Flash (1M, vision)" },
+        "gemini/gemini-3.5-flash": { "name": "Gemini 3.5 Flash (1M, vision)" },
+        "gemini/gemini-3.5-flash-lite": { "name": "Gemini 3.5 Flash Lite (1M)" }
+      }
+    },
+    // Jalur Anthropic Messages (/v1/messages). Rute OpenAI-compatible dari
+    // baseURL yang sama SENGAJA tidak didaftarkan: gateway menolak bentuk
+    // request opencode (tools.N.function.description, param verbosity).
+    "experiential-anthropic": {
+      "npm": "@ai-sdk/anthropic",
+      "name": "Experiential via Anthropic (gratis promo)",
+      "options": {
+        "baseURL": "https://api.experientiallabs.ai/v1",
+        "apiKey": "{file:~/.config/opencode/secrets/experiential.key}"
+      },
+      "models": {
+        "gpt-5.6-luna": { "name": "GPT-5.6 Luna (gratis)" }
+      }
+    },
+    // OpenCode Zen. Aktifkan sesudah `opencode auth login` + ada dana; slug
+    // `-free` wajib dipanggil dari dalam opencode asli, request biasa ditolak.
+    "zen": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OpenCode Zen",
+      "options": {
+        "baseURL": "https://opencode.ai/zen/v1",
+        "apiKey": "{file:~/.config/opencode/secrets/zen.key}"
+      },
+      "models": {
+        "muse-spark-1.3-contributor-free": { "name": "Muse Spark 1.3 (gratis)" }
+      }
+    },
+    "pollinations": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Pollinations",
+      "options": {
+        "baseURL": "https://gen.pollinations.ai/v1",
+        "apiKey": "{file:~/.config/opencode/secrets/pollinations.key}"
+      },
+      "models": {
+        "deepseek/deepseek-v4-flash": { "name": "DeepSeek V4 Flash (Pollinations, 1M, tools)" },
+        "deepseek/deepseek-v4-pro": { "name": "DeepSeek V4 Pro (Pollinations, 1M, tools)" },
+        "z-ai/glm-5.3-flash": { "name": "GLM 5.3 Flash (Pollinations, 1M)" },
+        "moonshotai/kimi-k2.6": { "name": "Kimi K2.6 (Pollinations, 262k)" },
+        "openai/gpt-5.4-nano": { "name": "GPT-5.4 Nano (Pollinations, 400k, fast)" },
+        "openai/gpt-5.4-mini": { "name": "GPT-5.4 Mini (Pollinations, 400k)" },
+        "nvidia/nemotron-3.5-lightning": { "name": "Nemotron 3.5 Lightning (Pollinations, 262k)" }
+      }
+    },
+    // Diffusion LLM, OpenAI-compatible. mercury-2.5 pilihan utama.
+    "inception": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Inception Labs (diffusion)",
+      "options": {
+        "baseURL": "https://api.inceptionlabs.ai/v1",
+        "apiKey": "{file:~/.config/opencode/secrets/inception.key}"
+      },
+      "models": {
+        "mercury-2.5": { "name": "Mercury 2.5 (260k, tools)" },
+        "mercury-2": { "name": "Mercury 2 (128k, tools)" }
+      }
+    },
+    // Satu model, text-only (gambar/PDF ditolak 400), context 256k.
+    "atria": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Atria ASI",
+      "options": {
+        "baseURL": "https://api.atria-asi.ai/v1",
+        "apiKey": "{file:~/.config/opencode/secrets/atria.key}"
+      },
+      "models": {
+        "Atria-Dawn-Preview": { "name": "Atria Dawn Preview (256k, text-only)" }
+      }
+    },
+    // Wajib lewat plugin/agentrouter-headers.js (fingerprint Claude Code),
+    // WAF menolak request polos. Cadangan, bukan default.
+    "agentrouter": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "AgentRouter",
+      "options": {
+        "baseURL": "https://agentrouter.org/v1",
+        "apiKey": "{file:~/.config/opencode/secrets/agentrouter.key}"
+      },
+      "models": {
+        "deepseek-v4-flash": { "name": "DeepSeek V4 Flash (AgentRouter)" },
+        "glm-5.3": { "name": "GLM 5.3 (AgentRouter)" }
+      }
+    }
+  },
+
+  "agent": {
+    // Model ringan khusus laptop ini, lewat 9router.
+    "vision": { "model": "9router/gemini/gemini-3.6-flash" },
+    "fast": { "model": "9router/gemini/gemini-3.5-flash" }
+  },
+
+  "mcp": {
+    // Tunnel Tailscale pribadi. {{N8N_URL}} diisi dari ~/.config/harness/env;
+    // kalau kosong, entri ini dibuang saat render, bukan ditulis rusak.
+    "n8n": {
+      "type": "remote",
+      "url": "{{N8N_URL}}/mcp-server/http",
+      "headers": { "Authorization": "{file:~/.config/opencode/secrets/n8n-auth.txt}" },
+      "enabled": true
+    },
+    // Project ref diisi dari ~/.config/harness/env sebagai
+    // SUPABASE_PROJECT_REF, bukan ditulis di repo publik ini. Kalau kosong,
+    // entri-nya dibuang saat render.
+    "supabase": {
+      "type": "remote",
+      "url": "https://mcp.supabase.com/mcp?project_ref={{SUPABASE_PROJECT_REF}}&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching%2Cstorage",
+      "enabled": true,
+      "oauth": {}
+    }
+  }
+}

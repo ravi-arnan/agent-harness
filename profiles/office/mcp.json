@@ -1,0 +1,10 @@
+{
+  // Office bonus line. The base file already covers context7 and
+  // cloudflare-docs. Nothing here needs a personal account.
+  //
+  // On purpose there is no github MCP: it wants a personal access token, and
+  // tokens on a company machine are a bad trade. If the office has its own
+  // GitHub org credentials, add it from the office side in
+  // ~/.gemini/config.local.json, not in this repo.
+  "mcpServers": {}
+}

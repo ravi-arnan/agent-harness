@@ -1,0 +1,54 @@
+name: Pages
+
+# Publishes site/ plus install.sh at the root of the site, which is what makes
+# the one-liner possible:
+#   curl -fsSL https://<user>.github.io/agent-harness/install.sh | bash -s -- --profile office
+# Requires: repository Settings > Pages > Source = GitHub Actions.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - site/**
+      - install.sh
+      - harness.mjs
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site
+          cp -a site/. _site/
+          # Served so `curl | bash` can fetch it. When piped there is no local
+          # checkout, so install.sh clones the repo itself.
+          cp install.sh _site/install.sh
+          chmod +x _site/install.sh
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,9 @@
+{
+  "name": "agent-harness",
+  "private": true,
+  "description": "Portable agent harness for opencode, Antigravity and Claude Code. See README.md.",
+  "comment": "The only runtime dependency is for opencode's plugin/resume.js, which imports @opencode-ai/plugin. Because ~/.config/opencode/plugin is a symlink into this kit, Node resolves that import from here, not from ~/.config/opencode/node_modules. Run `npm install --omit=dev` in the kit root after cloning, or let install.sh do it.",
+  "dependencies": {
+    "@opencode-ai/plugin": "1.18.18"
+  }
+}

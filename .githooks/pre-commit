@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Blocks a commit that introduces a credential or a personal identifier.
+# Enable once per clone:  git config core.hooksPath .githooks
+echo "sanitize (staged files)"
+exec node scripts/sanitize.mjs --staged

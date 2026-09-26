@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # The only runtime dependency is @opencode-ai/plugin, needed by opencode's
+      # plugin/resume.js. doctor fails without it, so CI installs it too.
+      - name: Install kit dependencies
+        run: npm ci --omit=dev --no-audit --no-fund
+
+      - name: Sanitize (no secrets, no personal data)
+        run: node scripts/sanitize.mjs
+
+      - name: Shellcheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq shellcheck
+          shellcheck -S warning install.sh uninstall.sh scripts/smoke-test.sh scripts/export-from-machine.sh
+
+      # Full install into a throwaway HOME for both profiles, plus uninstall and
+      # the piped-invocation path. Fails on drift, broken symlinks, unresolved
+      # tokens, or a generated file that will not parse.
+      - name: Smoke test
+        run: bash scripts/smoke-test.sh

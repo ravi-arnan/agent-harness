@@ -1,0 +1,27 @@
+{
+  // MCP servers every machine gets. Kept deliberately small and working:
+  // Antigravity's MCP tools all land in the context window, so a long list of
+  // half-broken servers costs real tokens for nothing.
+  //
+  // Schema note: this agy version (1.2.11) uses "type": "http" + "url" for
+  // remote servers and "command"/"args" for stdio. The bundled docs describe
+  // "serverUrl" for SSE, which this version does NOT accept. Verified with
+  // `agy mcp list`.
+  "mcpServers": {
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "description": "Live library documentation lookup"
+    },
+    "cloudflare-docs": {
+      "type": "http",
+      "url": "https://docs.mcp.cloudflare.com/mcp",
+      "description": "Cloudflare documentation search"
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "description": "Chain-of-thought reasoning"
+    }
+  }
+}

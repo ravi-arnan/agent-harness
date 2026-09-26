@@ -1,0 +1,29 @@
+{
+  // Closes the formatting gap between harnesses: opencode runs eslint on every
+  // edit through its `formatter` block, and Claude Code does it through a
+  // PostToolUse hook, but Antigravity had no equivalent until this file.
+  //
+  // Tool names are lowercased step types. The first four were observed in this
+  // machine's own agy conversation databases (run_command, write_file,
+  // view_file, write_to_file); the alternatives cover naming used by other
+  // Antigravity builds. If an edit ever stops being formatted, re-check the
+  // real names in ~/.gemini/antigravity-cli/conversations/*.db and widen the
+  // matcher.
+  //
+  // Handlers run synchronously and block the agent loop, so the adapter always
+  // exits 0 and prints {} on stdout, and the lint itself is swallowed.
+  "eslint-fix": {
+    "PostToolUse": [
+      {
+        "matcher": "write_file|write_to_file|replace_file_content|multi_replace_file_content|edit_file|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node {{KIT}}/scripts/hook-eslint-anty.mjs",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

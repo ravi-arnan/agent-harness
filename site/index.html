@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agent-harness</title>
+<meta name="description" content="Portable agent behaviour for opencode, Antigravity CLI and Claude Code. One command, no credentials.">
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b22;
+    --line: #262d38;
+    --fg: #e6edf3;
+    --dim: #8b949e;
+    --accent: #7ee787;
+    --warn: #ffa657;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .wrap { max-width: 60rem; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+  h1 { font-size: 1.9rem; margin: 0 0 .4rem; letter-spacing: -.02em; }
+  h2 { font-size: 1.1rem; margin: 2.75rem 0 .75rem; letter-spacing: -.01em; }
+  p { margin: .6rem 0; color: var(--dim); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  code { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: .1em .35em; font-size: .9em; }
+  pre {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    font-size: .87rem;
+    margin: .75rem 0;
+  }
+  pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: .75rem 0; font-size: .9rem; }
+  th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-weight: 600; }
+  td code { font-size: .85em; }
+  .lead { color: var(--fg); font-size: 1.02rem; }
+  .tag { color: var(--warn); }
+  footer { margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--line); color: var(--dim); font-size: .87rem; }
+  .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); margin-top: .75rem; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.1rem; }
+  .card h3 { margin: 0 0 .35rem; font-size: .95rem; }
+  .card p { margin: 0; font-size: .88rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>agent-harness</h1>
+  <p class="lead">My agent behaviour, portable. One command puts the same rules, agents, skills
+  and MCP setup onto any Ubuntu box, across opencode, Antigravity CLI and Claude Code.</p>
+
+  <h2>Install</h2>
+  <pre><code>curl -fsSL https://ravi-arnan.github.io/agent-harness/install.sh | bash -s -- --profile office</code></pre>
+  <p>Or from a clone, which is easier to inspect before running:</p>
+  <pre><code>git clone https://github.com/ravi-arnan/agent-harness.git ~/agent-harness
+~/agent-harness/install.sh --profile office</code></pre>
+
+  <h2>Profiles</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>office</h3>
+      <p>A work machine with a company account. No personal provider keys, no local model
+      router, no personal tunnels. opencode resolves its model from
+      <code>opencode auth login</code>; Antigravity uses the company Google account.</p>
+    </div>
+    <div class="card">
+      <h3>personal</h3>
+      <p>My own machine. Adds the local 9router provider, the free-provider keys under
+      <code>~/.config/opencode/secrets/</code>, and the laptop-specific thermal rules.</p>
+    </div>
+  </div>
+  <p style="margin-top:1rem">The installer writes the choice to <code>~/.config/harness/state.json</code>
+  and asks when <code>--profile</code> is omitted.</p>
+
+  <h2>How it lands on the machine</h2>
+  <p>Symlinked, so <code>git pull</code> is the whole update:</p>
+  <table>
+    <tr><th>Target</th><th>Source</th></tr>
+    <tr><td><code>~/.claude/rules/ecc</code></td><td><code>layer-ecc/rules</code></td></tr>
+    <tr><td><code>~/.claude/agents</code> <code>commands</code> <code>skills</code> <code>scripts</code></td><td><code>layer-ecc/*</code>, <code>scripts/claude</code></td></tr>
+    <tr><td><code>~/.config/opencode/router.md</code> <code>skills</code> <code>plugin</code> <code>bin</code> <code>tui.json</code></td><td><code>layer-personal/*</code>, <code>harnesses/opencode/*</code></td></tr>
+  </table>
+  <p>Generated, because they differ per machine: <code>~/.config/opencode/opencode.jsonc</code>,
+  <code>~/.config/opencode/AGENTS.md</code>, <code>~/.gemini/config/GEMINI.md</code>,
+  <code>~/.gemini/config/mcp_config.json</code>, <code>skills.json</code> and <code>hooks.json</code>.
+  Each is a portable base plus a profile overlay. Anything already at a link target is moved to
+  <code>~/harness-backup-&lt;timestamp&gt;/</code> first, never deleted.</p>
+
+  <h2>What is not in it</h2>
+  <p>No credentials and no personal context. Specifically excluded:
+  <code>~/.config/opencode/secrets/</code>, <code>auth.json</code>,
+  <code>.credentials.json</code>, <code>.claude.json</code>, <code>oauth_creds.json</code>,
+  <code>.git-credentials</code>, auto-memory, session and telemetry data, and my machine
+  identifiers. <code>scripts/sanitize.mjs</code> fails the build on all of them, and CI runs it
+  on every push.</p>
+  <p>Values a machine needs, like a tunnel URL or a project ref, are <code>{{TOKENS}}</code>
+  filled from <code>~/.config/harness/env</code> (mode 600). When unset, the entry that needed it
+  is dropped and reported instead of being written out broken.</p>
+
+  <h2>After installing</h2>
+  <pre><code>opencode auth login                      # office account on the office box
+opencode run "say hi"                    # proves the whole config loads
+node ~/agent-harness/harness.mjs doctor  # binaries, links, missing secrets
+node ~/agent-harness/harness.mjs status  # kit vs machine, exit 1 on drift</code></pre>
+  <p><code>status</code> is the one to run before and after a <code>git pull</code>. It checks all
+  three harnesses, not just opencode.</p>
+
+  <h2>Docs</h2>
+  <p>
+    <a href="https://github.com/ravi-arnan/agent-harness#readme">README</a> for the layout and how to
+    change things.
+    <a href="https://github.com/ravi-arnan/agent-harness/blob/main/VENDOR.md">VENDOR.md</a> for the
+    provenance and curation of the vendored third-party content.
+    <a href="https://github.com/ravi-arnan/agent-harness/blob/main/harnesses/opencode/NOTES.md">NOTES.md</a>
+    for the opencode and Antigravity gotchas.
+  </p>
+
+  <footer>
+    <span class="tag">layer-ecc/</span> is vendored third-party content: Everything Claude Code 2.1.0
+    and skills from cloudflare/skills. See VENDOR.md before redistributing. Everything else is MIT.
+  </footer>
+
+</div>
+</body>
+</html>

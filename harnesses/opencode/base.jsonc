@@ -1,0 +1,118 @@
+{
+  // Portable half of the opencode config. Machine-specific halves live in
+  // profiles/<profile>/opencode.jsonc and are deep-merged on top of this file
+  // by `harness.mjs render`. Never edit the rendered
+  // ~/.config/opencode/opencode.jsonc directly: it is overwritten.
+  //
+  // Provider/model history and dead-provider post-mortems live in
+  // harnesses/opencode/NOTES.md, not here, so they do not rot inside a
+  // generated file.
+  "$schema": "https://opencode.ai/config.json",
+
+  // ---------------------------------------------------------- instructions
+  // router.md is the only global always-on injection. Rules under
+  // ~/.claude/rules/ecc/<stack>/, MEMORY.md and the second brain index are
+  // Read on demand through the router, never injected whole. Worth roughly
+  // 37 KB of context per session on small-window free models.
+  // AGENTS.md in ~/.config/opencode is auto-loaded by opencode itself.
+  "instructions": [
+    "~/.config/opencode/router.md",
+    // per-repo rules, when present
+    "CLAUDE.md",
+    ".claude/rules/*.md"
+  ],
+
+  // SKILL.md format is identical between Claude Code and opencode, so the
+  // ECC skills are reused as-is. ~/.claude/skills and
+  // ~/.config/opencode/skills are both symlinks into this kit.
+  "skills": { "paths": ["~/.claude/skills", "~/.config/opencode/skills"] },
+
+  // Drop stale tool output from context. Matters on small-window models.
+  "compaction": { "prune": true, "tail_turns": 2 },
+
+  // Subagents may spawn subagents (depth 2), which is what makes the orch-*
+  // skills hierarchical instead of flat. Needs opencode >= 1.18.
+  "subagent_depth": 2,
+
+  // ------------------------------------------------------------- formatter
+  // Stands in for Claude Code's PostToolUse "eslint --fix" hook. The script
+  // finds the eslint config by walking up from the edited file, not from the
+  // session root (which is often an umbrella folder holding many repos).
+  "formatter": {
+    "eslint-fix": {
+      "command": ["node", "{{KIT}}/scripts/claude/hook-eslint-fix.mjs", "$FILE"],
+      "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]
+    }
+  },
+
+  // ------------------------------------------------------------ permission
+  // Administrator mode: bypasses every permission check, including
+  // cross-directory access. Deliberate, matching the previous setup. The
+  // "auto" primary agent exists so this can also be opted into per session
+  // with Tab instead of being the global default.
+  "permission": "allow",
+
+  // ----------------------------------------------------------------- agent
+  // Primary agents, switched with Tab in the TUI. Models come from the
+  // profile; an agent with no model of its own inherits the session model.
+  "agent": {
+    "vision": {
+      "description": "Baca gambar, screenshot, diagram, mockup",
+      "mode": "primary",
+      "prompt": "Kamu membaca gambar untuk agent lain. Deskripsikan isi gambar secara teknis dan spesifik: teks yang terlihat, layout, warna, error message, angka. Jangan menebak yang tidak terlihat."
+    },
+    "fast": {
+      "description": "Iterasi cepat, tugas mekanis, edit kecil. Lebih ngebut dari model utama.",
+      "mode": "primary"
+    },
+    "auto": {
+      "description": "Tanpa konfirmasi permission (yolo). Pakai hanya di repo sendiri.",
+      "mode": "primary",
+      "permission": "allow"
+    }
+  },
+
+  // ------------------------------------------------------------------- mcp
+  // Only servers that need no personal account beyond a per-machine OAuth
+  // handshake belong here. Anything pointing at a personal host, project or
+  // tunnel lives in the profile instead.
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true
+    },
+    "microsoft-learn": {
+      "type": "remote",
+      "url": "https://learn.microsoft.com/api/mcp",
+      "enabled": true
+    },
+    "cloudflare": { "type": "remote", "url": "https://mcp.cloudflare.com/mcp", "enabled": true, "oauth": {} },
+    "cloudflare-docs": { "type": "remote", "url": "https://docs.mcp.cloudflare.com/mcp", "enabled": true },
+    "cloudflare-bindings": { "type": "remote", "url": "https://bindings.mcp.cloudflare.com/mcp", "enabled": true, "oauth": {} },
+    "cloudflare-builds": { "type": "remote", "url": "https://builds.mcp.cloudflare.com/mcp", "enabled": true, "oauth": {} },
+    "cloudflare-observability": { "type": "remote", "url": "https://observability.mcp.cloudflare.com/mcp", "enabled": true, "oauth": {} },
+
+    // Browser automation is heavy on this class of laptop, so it stays off
+    // until a task actually needs it.
+    "playwright": {
+      "type": "local",
+      "command": ["nice", "-n", "10", "npx", "@playwright/mcp@latest", "--headless", "--isolated"],
+      "enabled": false
+    },
+    "chrome-devtools": {
+      "type": "local",
+      "command": ["nice", "-n", "10", "npx", "chrome-devtools-mcp@latest", "--browserUrl", "http://127.0.0.1:9222"],
+      "enabled": false
+    },
+    // Points at a separate personal project. Harmless when absent because it
+    // is disabled; enable it only on a machine that has that repo checked out.
+    "canva": {
+      "type": "local",
+      "command": ["node", "{env:HOME}/Projects/canva-mcp/dist/index.js"],
+      "enabled": false
+    }
+  },
+
+  "autoupdate": "notify"
+}

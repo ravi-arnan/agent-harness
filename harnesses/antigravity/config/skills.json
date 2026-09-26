@@ -1,0 +1,64 @@
+{
+  // Skills are not copied per harness; they are declared once and shared.
+  //
+  // Antigravity loads only names and descriptions until a skill is activated,
+  // so this file is what keeps the 50-skill ECC set plus the local ones from
+  // flooding the context window. `include_only` is the documented filter for
+  // exactly this.
+  //
+  // The curated list below is a straight port of what
+  // ~/.gemini/config/skills/ contained on the machine this kit was exported
+  // from (36 entries that resolved into ~/.claude/skills, plus checkpoint,
+  // session-resume, graphify and skill-library which live in their own
+  // folders). Nothing was added or removed.
+  "entries": [
+    {
+      "path": "{{KIT}}/harnesses/antigravity/skills"
+    },
+    {
+      "path": "{{KIT}}/layer-personal/skills"
+    },
+    {
+      "path": "{{KIT}}/layer-ecc/skills",
+      "include_only": [
+        "agent-introspection-debugging",
+        "agent-self-evaluation",
+        "agent-sort",
+        "agents-sdk",
+        "architecture-decision-records",
+        "browser-qa",
+        "ck",
+        "click-path-audit",
+        "codebase-onboarding",
+        "code-tour",
+        "context-budget",
+        "dynamic-workflow-mode",
+        "ecc",
+        "ecc-guide",
+        "ecc-recipes",
+        "error-handling",
+        "git-workflow",
+        "grilling",
+        "growth-log",
+        "hookify-rules",
+        "inherit-legacy-style",
+        "intent-driven-development",
+        "iterative-retrieval",
+        "loop-design-check",
+        "orch-add-feature",
+        "orch-build-mvp",
+        "orch-change-feature",
+        "orch-fix-defect",
+        "orch-pipeline",
+        "orch-refine-code",
+        "product-lens",
+        "strategic-compact",
+        "tdd-workflow",
+        "unified-memory",
+        "verification-loop",
+        "wizard",
+        "writing-for-agents"
+      ]
+    }
+  ]
+}

@@ -83,17 +83,21 @@ fi
 say "kit:     $KIT"
 
 # ---------------------------------------------------------------- preflight
-problems=0
+# Node is the only hard requirement. This script installs configuration, and it
+# is legitimate to lay that down before the CLI itself is present, so a missing
+# opencode or agy is reported loudly and installation continues. That also keeps
+# this script runnable on a bare CI runner.
+missing=""
 
 node_bin="$(command -v node || true)"
 if [ -z "$node_bin" ]; then
   say "MISSING: node (20 or newer is required)"
-  problems=1
+  missing="$missing node"
 else
   node_major="$(node -p 'process.versions.node.split(".")[0]')"
   if [ "$node_major" -lt 20 ]; then
     say "MISSING: node $node_major is too old, 20 or newer is required"
-    problems=1
+    missing="$missing node"
   else
     say "node:    $(node --version)"
   fi
@@ -103,13 +107,20 @@ for bin in git opencode agy; do
   if command -v "$bin" >/dev/null 2>&1; then
     say "$bin: $("$bin" --version 2>/dev/null | head -1)"
   else
-    say "MISSING: $bin (not on PATH)"
-    [ "$bin" = "opencode" ] && problems=1
+    say "missing: $bin (not on PATH)"
+    # git is only needed to fetch the kit, which has already happened by now.
+    [ "$bin" != "git" ] && missing="$missing $bin"
   fi
 done
 
-if [ "$problems" -ne 0 ]; then
-  die "install the missing tools above first, then re-run. Nothing was changed."
+case " $missing " in
+  *" node "*) die "node 20 or newer is required, so nothing was changed." ;;
+esac
+
+if [ -n "$missing" ]; then
+  say ""
+  say "WARNING: still missing:$missing"
+  say "Configuration will be written, but those harnesses cannot run until they are installed."
 fi
 
 # ------------------------------------------------------------------ profile

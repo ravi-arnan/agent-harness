@@ -2,7 +2,11 @@
 # Portable agent harness installer.
 #
 #   bash install.sh --profile office
-#   curl -fsSL https://ravi-arnan.github.io/agent-harness/install.sh | bash -s -- --profile office
+#   curl -fsSL https://raw.githubusercontent.com/ravi-arnan/agent-harness/main/install.sh | bash -s -- --profile office
+#
+# The raw URL is used rather than a Pages URL because a user-level custom domain
+# on this account currently redirects every project Pages site to a host that
+# 404s. See README.md.
 #
 # Idempotent: safe to re-run after a `git pull`. Existing files that would be
 # replaced are moved to ~/harness-backup-<timestamp>/ first, never deleted.

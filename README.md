@@ -5,7 +5,7 @@ MCP setup onto any Ubuntu box, across **opencode**, **Antigravity CLI** and
 **Claude Code**.
 
 ```bash
-curl -fsSL https://ravi-arnan.github.io/agent-harness/install.sh | bash -s -- --profile office
+curl -fsSL https://raw.githubusercontent.com/ravi-arnan/agent-harness/main/install.sh | bash -s -- --profile office
 ```
 
 Or from a clone:
@@ -14,6 +14,15 @@ Or from a clone:
 git clone https://github.com/ravi-arnan/agent-harness.git ~/agent-harness
 ~/agent-harness/install.sh --profile office
 ```
+
+`site/` is also published to GitHub Pages by `.github/workflows/pages.yml`, which
+would make `https://ravi-arnan.github.io/agent-harness/install.sh` work as well.
+That URL is currently dead for an unrelated reason: the account's user site
+(`ravi-arnan/ravi-arnan.github.io`) has a custom domain set to
+`raviarnan.runs-on.dev`, so GitHub redirects every project page under this
+account there, and that host 404s. Clearing that custom domain restores Pages for
+every repository in the account, not just this one. Until then the raw URL above
+is the supported one.
 
 ## Why this exists
 

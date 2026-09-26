@@ -488,14 +488,18 @@ function doctor() {
   const major = Number(process.versions.node.split('.')[0]);
   if (major < 20) problems.push(`node ${process.versions.node} is older than 20`);
 
-  for (const [bin, required] of [['git', true], ['opencode', true], ['agy', true], ['npx', false]]) {
+  // The harness binaries are prerequisites, not installation state. install.sh
+  // refuses to run without opencode, and a machine that only uses one of the
+  // three CLIs (or a CI runner) legitimately lacks the others, so their absence
+  // is a note. Node is the one thing this kit cannot work without.
+  for (const bin of ['git', 'opencode', 'agy', 'npx']) {
     let found = null;
     try {
       found = execFileSync('sh', ['-c', `command -v ${bin}`], { encoding: 'utf8' }).trim();
     } catch {
       found = null;
     }
-    if (!found) (required ? problems : notes).push(`${bin}: not on PATH`);
+    if (!found) notes.push(`${bin}: not on PATH (that harness will not run here)`);
   }
 
   if (basename(KIT) !== 'agent-harness') notes.push(`kit directory is ${KIT}; ~/agent-harness is the documented location, links are absolute so this still works`);

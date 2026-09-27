@@ -196,6 +196,15 @@ if node "$KIT/harness.mjs" status --profile "$PROFILE" >/dev/null 2>&1; then
 else
   say "warning: harness.mjs status reports drift, run it for details"
 fi
+
+# The task board CLI is linked into ~/.local/bin, which is not on PATH everywhere.
+case ":$PATH:" in
+  *":$HOME/.local/bin:"*) ;;
+  *) say ""
+     say "note: $HOME/.local/bin is not on your PATH, so the 'tasks' command will not"
+     say "      resolve. Add it, or call it as: node $KIT/tasks/cli.mjs" ;;
+esac
+
 say ""
 say "Reminder: this kit installs rules, agents, skills and config only."
 say "It contains no credentials. Log in to opencode and Antigravity with the"

@@ -12,7 +12,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { extname, join, relative } from 'node:path';
+import { extname, isAbsolute, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
@@ -52,6 +52,9 @@ const RULES = [
   [/\bAIza[0-9A-Za-z_-]{30,}/, 'Google API key'],
   [/\bhf_[A-Za-z0-9]{20,}/, 'Hugging Face token'],
   [/\bxox[baprs]-[A-Za-z0-9-]{10,}/, 'Slack token'],
+  // Cloudflare: wrangler stores an OAuth access and refresh token in plaintext under
+  // ~/.config/.wrangler, and the dashboard hands out API tokens in these shapes.
+  [/\b(cfoat|cfort|cfut|cfat)_[A-Za-z0-9._-]{15,}/, 'Cloudflare API, OAuth or user token'],
   [/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}/, 'JSON Web Token'],
   [/-----BEGIN [A-Z ]*PRIVATE KEY-----/, 'private key block'],
 
@@ -129,8 +132,10 @@ const files = explicit.length ? explicit : (trackedFiles() ?? walk(ROOT));
 let findings = 0;
 let scanned = 0;
 
-for (const rel of files) {
-  const full = join(ROOT, rel);
+for (const entry of files) {
+  // Explicit paths may be absolute; the tracked and walked lists are repo-relative.
+  const full = isAbsolute(entry) ? entry : join(ROOT, entry);
+  const rel = isAbsolute(entry) ? relative(ROOT, entry) || entry : entry;
   if (SELF_SKIP.has(rel)) continue;
 
   if (!SCAN_ALL) {

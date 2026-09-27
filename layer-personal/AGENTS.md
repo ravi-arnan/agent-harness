@@ -26,6 +26,25 @@ teknis.
 - Format commit: `<type>: <description>` (feat, fix, refactor, docs, test,
   chore, perf, ci).
 
+## Papan tugas (tasks)
+
+Ada papan tugas bersama di server, dipakai juga oleh sesi agent lain dan bisa
+dibuka Ravi di browser. Perintahnya `tasks` (fallback:
+`node ~/agent-harness/tasks/cli.mjs`).
+
+- Awal sesi: `tasks board` atau `tasks next`.
+- Sebelum mengerjakan: `tasks start <id>`. Kalau ditolak, berarti sesi lain sedang
+  memegangnya. Ambil tugas lain, jangan `--force` kecuali lease-nya sudah
+  kedaluwarsa.
+- Selesai dan sudah diverifikasi: `tasks done <id> -m "buktinya apa"`.
+- Jalan buntu: `tasks note <id> "coba A, gagal karena B"` supaya sesi berikutnya
+  tidak mengulanginya.
+- Terhalang: `tasks block <id> -m "menunggu X"`.
+
+Jangan pernah menulis kredensial, token, isi `.env`, atau kode milik kantor ke judul
+atau catatan tugas. Rujuk lokasinya, bukan isinya. Kalau server tidak bisa
+dihubungi, katakan apa adanya, jangan berpura-pura sudah mencatat.
+
 ## Verifikasi
 
 Ravi mengecek UI dan deploy secara manual. Jangan otomatis pakai Playwright

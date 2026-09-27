@@ -1,0 +1,8 @@
+{
+  "//": "Copy to ~/.config/tasks/config.json on each machine that runs the CLI, mode 600. Never commit a filled-in copy.",
+  "url": "https://tasks.example.com",
+  "token": "the board token from ~/.config/tasks/server.json on the host",
+  "//cfAccess": "Only needed when Cloudflare Access sits in front of the tunnel. Create a service token in Zero Trust > Access > Service Auth.",
+  "cfAccessClientId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.access",
+  "cfAccessClientSecret": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+}

@@ -5,6 +5,15 @@ on-demand sesuai kondisi di bawah. Jangan baca semuanya di awal sesi.
 
 Aturan personal + ponytail sudah ada di AGENTS.md (auto-load), tidak diulang di sini.
 
+## Papan tugas (cek di awal sesi)
+
+Kalau CLI `tasks` tersedia, lihat papan sebelum mulai kerja: `tasks board`, lalu
+klaim dengan `tasks start <id>` supaya sesi lain tahu. Tutup dengan
+`tasks done <id>` sesudah verifikasi, bukan sebelum. Alur lengkapnya di skill
+`tasks`. Kalau servernya tidak bisa dihubungi, laporkan apa adanya dan jangan
+mengaku sudah mencatat. Jangan pernah menulis kredensial atau data kantor ke judul
+atau catatan tugas.
+
 ## Aturan teknik per stack
 
 Semua aturan tinggal di `~/.claude/rules/ecc/<stack>/`. Sebelum menulis kode,

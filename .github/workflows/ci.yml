@@ -31,6 +31,10 @@ jobs:
           sudo apt-get install -y -qq shellcheck
           shellcheck -S warning install.sh uninstall.sh scripts/smoke-test.sh scripts/export-from-machine.sh
 
+      # The store is the part that must be right: claims, leases, takeover.
+      - name: Task board tests
+        run: node --test tasks/store.test.mjs tasks/server.test.mjs
+
       # Full install into a throwaway HOME for both profiles, plus uninstall and
       # the piped-invocation path. Fails on drift, broken symlinks, unresolved
       # tokens, or a generated file that will not parse.

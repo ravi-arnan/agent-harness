@@ -58,6 +58,7 @@ Symlinked, so the machine always reflects the kit:
 | `~/.config/opencode/tui.json` | `harnesses/opencode/tui.json` |
 | `~/.config/opencode/command/resume.md` | `harnesses/opencode/command-local/resume.md` |
 | `~/.config/opencode/command/worktree.md` | `harnesses/opencode/command-local/worktree.md` |
+| `~/.local/bin/tasks` | `tasks/cli.mjs` |
 
 Generated, because they differ per machine:
 
@@ -97,6 +98,21 @@ GIT_EMAIL=you@example.com
 
 An unset value is not written as an empty string: the entry that needed it is
 dropped at render time and reported.
+
+## Task board
+
+The kit also carries `tasks/`, a small durable task board with claim-and-lease
+coordination so several agent sessions cannot take the same job twice. It runs as its
+own service on an always-on host, because a claim has to be atomic and files plus git
+cannot provide that. `tasks/README.md` has the operations detail and the tunnel and
+Access setup.
+
+The agent side is three lines in `layer-personal/router.md` plus the `tasks` skill:
+read the board at session start, claim before starting, close after verifying.
+
+Nothing about the board is required for the rest of the kit to work. If no server is
+configured the CLI says so and exits 2, and agents are told to report that rather than
+pretend they recorded something.
 
 ## What is deliberately not in this repo
 

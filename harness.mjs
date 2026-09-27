@@ -68,6 +68,9 @@ const LINKS = [
   // they would silently not exist on a new machine.
   ['~/.config/opencode/command/resume.md', 'harnesses/opencode/command-local/resume.md'],
   ['~/.config/opencode/command/worktree.md', 'harnesses/opencode/command-local/worktree.md'],
+  // The task board CLI, so agents can just call `tasks`. Needs ~/.local/bin on
+  // PATH; install.sh warns when it is not.
+  ['~/.local/bin/tasks', 'tasks/cli.mjs'],
 ];
 
 // Generated files. mode:

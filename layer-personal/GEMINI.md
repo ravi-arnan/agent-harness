@@ -67,3 +67,21 @@ hanya yang relevan yang dimuat.
 
 Manfaatkan TDD workflow, Code Review, Architecture Decision Records, Grilling,
 dan Spec Mining bila diperlukan.
+
+---
+
+## 8. Papan tugas (tasks)
+
+Ada papan tugas bersama di server, dipakai bersama sesi agent lain dan browser.
+Perintahnya `tasks` (fallback: `node ~/agent-harness/tasks/cli.mjs`).
+
+- Awal sesi: `tasks board` atau `tasks next`.
+- Sebelum mengerjakan: `tasks start <id>`. Ditolak berarti sesi lain memegangnya.
+  Ambil yang lain, jangan `--force` kecuali lease-nya sudah kedaluwarsa.
+- Selesai dan sudah diverifikasi: `tasks done <id> -m "buktinya apa"`.
+- Jalan buntu: `tasks note <id> "coba A, gagal karena B"`.
+- Terhalang: `tasks block <id> -m "menunggu X"`.
+
+Jangan menulis kredensial, token, isi `.env`, atau kode milik kantor ke judul maupun
+catatan tugas. Kalau server tidak bisa dihubungi, laporkan apa adanya, jangan
+berpura-pura sudah mencatat.

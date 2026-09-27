@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tasks</title>
+<style>
+  :root {
+    --bg: #0e1116; --panel: #161b22; --panel2: #1c2129; --line: #262d38;
+    --fg: #e6edf3; --dim: #8b949e; --todo: #6e7681; --doing: #3fb950;
+    --blocked: #d29922; --done: #484f58; --danger: #f85149; --accent: #58a6ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 ui-sans-serif, system-ui, sans-serif; }
+  header {
+    display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+    padding: .75rem 1rem; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 5;
+  }
+  header h1 { font-size: .95rem; margin: 0; font-weight: 600; }
+  .counts { color: var(--dim); font-size: .8rem; }
+  .counts b { color: var(--fg); font-weight: 600; }
+  .counts .stale { color: var(--blocked); }
+  .spacer { flex: 1; }
+  input, button, textarea, select {
+    font: inherit; background: var(--panel); color: var(--fg);
+    border: 1px solid var(--line); border-radius: 6px; padding: .35rem .55rem;
+  }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: #1f6feb; border-color: #1f6feb; }
+  button.ghost { background: transparent; }
+  button.danger:hover { border-color: var(--danger); color: var(--danger); }
+  .board { display: grid; grid-template-columns: repeat(4, minmax(16rem, 1fr)); gap: .75rem; padding: 1rem; align-items: start; overflow-x: auto; }
+  .col { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: .6rem; min-height: 6rem; }
+  .col.over { border-color: var(--accent); }
+  .col h2 { font-size: .72rem; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); margin: 0 0 .6rem; display: flex; justify-content: space-between; }
+  .col[data-status="todo"] h2 { color: var(--todo); }
+  .col[data-status="doing"] h2 { color: var(--doing); }
+  .col[data-status="blocked"] h2 { color: var(--blocked); }
+  .card {
+    background: var(--panel2); border: 1px solid var(--line); border-left: 3px solid var(--line);
+    border-radius: 6px; padding: .5rem .6rem; margin-bottom: .5rem; cursor: grab;
+  }
+  .card[data-status="doing"] { border-left-color: var(--doing); }
+  .card[data-status="blocked"] { border-left-color: var(--blocked); }
+  .card.stale { border-left-color: var(--blocked); background: #241f14; }
+  .card.dragging { opacity: .4; }
+  .card .title { word-break: break-word; }
+  .card .meta { color: var(--dim); font-size: .75rem; margin-top: .25rem; display: flex; gap: .5rem; flex-wrap: wrap; }
+  .card .pri-high { color: var(--danger); }
+  .claim { color: var(--accent); }
+  .stale-badge { color: var(--blocked); font-weight: 600; }
+  dialog { background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; max-width: 34rem; width: 92vw; }
+  dialog::backdrop { background: #000a; }
+  dialog h3 { margin: 0 0 .5rem; font-size: 1rem; }
+  dialog .row { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .75rem; }
+  dialog .notes { max-height: 14rem; overflow: auto; border-top: 1px solid var(--line); margin-top: .75rem; padding-top: .5rem; }
+  dialog .note { font-size: .8rem; color: var(--dim); margin-bottom: .35rem; }
+  dialog .note b { color: var(--fg); font-weight: 500; }
+  .muted { color: var(--dim); }
+  #gate { max-width: 26rem; margin: 18vh auto; padding: 1.25rem; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  #gate h2 { margin: 0 0 .35rem; font-size: 1rem; }
+  #gate p { color: var(--dim); font-size: .85rem; margin: 0 0 .75rem; }
+  #gate input, #gate button { width: 100%; }
+  #gate button { margin-top: .5rem; }
+  .err { color: var(--danger); font-size: .82rem; min-height: 1.2em; margin-top: .5rem; }
+  @media (max-width: 900px) { .board { grid-template-columns: repeat(2, minmax(14rem, 1fr)); } }
+</style>
+</head>
+<body>
+
+<div id="gate" hidden>
+  <h2>tasks</h2>
+  <p>Paste the board token from <code>~/.config/tasks/server.json</code> on the host. It is stored as a cookie and never leaves this browser.</p>
+  <input id="token" type="password" placeholder="token" autocomplete="off">
+  <button class="primary" id="login">Open board</button>
+  <div class="err" id="gate-err"></div>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <h1>tasks</h1>
+    <span class="counts" id="counts"></span>
+    <span class="spacer"></span>
+    <input id="new-title" placeholder="New task" size="28">
+    <select id="new-project"></select>
+    <select id="new-priority">
+      <option value="normal">normal</option>
+      <option value="high">high</option>
+      <option value="low">low</option>
+    </select>
+    <button class="primary" id="create">Add</button>
+    <span class="muted" title="claims made from this browser are attributed to this name">
+      acting as <input id="actor" size="8">
+    </span>
+  </header>
+  <div class="board" id="board"></div>
+</div>
+
+<dialog id="detail">
+  <h3 id="d-title"></h3>
+  <div class="muted" id="d-meta"></div>
+  <div class="row">
+    <button id="d-claim">Claim</button>
+    <button id="d-done">Done</button>
+    <button id="d-block">Block</button>
+    <button id="d-release" class="ghost">Release</button>
+    <button id="d-remove" class="ghost danger">Remove</button>
+    <span class="spacer"></span>
+    <button id="d-close" class="ghost">Close</button>
+  </div>
+  <div class="row">
+    <input id="d-note" placeholder="Add a note" size="34">
+    <button id="d-notebtn">Note</button>
+  </div>
+  <div class="notes" id="d-notes"></div>
+</dialog>
+
+<script>
+'use strict';
+const STATUSES = ['todo', 'doing', 'blocked', 'done'];
+const api = (path, method = 'GET', body) =>
+  fetch(path, {
+    method,
+    headers: body ? { 'content-type': 'application/json' } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  }).then(async (res) => {
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(payload.reason || res.statusText), { payload, status: res.status });
+    return payload;
+  });
+
+let state = { tasks: [], sessions: [], counts: {} };
+let selected = null;
+
+const el = (id) => document.getElementById(id);
+const actor = () => localStorage.getItem('tasks.actor') || 'web';
+
+// ------------------------------------------------------------------ gate
+async function login(token) {
+  const res = await fetch('/api/login', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ token }),
+  });
+  if (!res.ok) throw new Error('that token was rejected');
+}
+el('login').onclick = async () => {
+  el('gate-err').textContent = '';
+  try {
+    await login(el('token').value.trim());
+    sessionStorage.setItem('tasks.authed', '1');
+    show();
+  } catch (error) {
+    el('gate-err').textContent = error.message;
+  }
+};
+el('token').addEventListener('keydown', (e) => { if (e.key === 'Enter') el('login').click(); });
+
+function show() {
+  el('gate').hidden = true;
+  el('app').hidden = false;
+  el('actor').value = actor();
+  el('actor').onchange = () => localStorage.setItem('tasks.actor', el('actor').value.trim() || 'web');
+  connect();
+}
+
+// ------------------------------------------------------------------- data
+async function load() {
+  state = await api('/api/state');
+  render();
+}
+
+function connect() {
+  const events = new EventSource('/api/events');
+  events.onmessage = (event) => {
+    state = JSON.parse(event.data);
+    render();
+  };
+  // A dead stream (host rebooted, token rotated) should surface, not hang silently.
+  events.onerror = () => {
+    if (events.readyState === EventSource.CLOSED) setTimeout(connect, 5000);
+  };
+  load().catch(() => {});
+}
+
+// ----------------------------------------------------------------- render
+function countsLine() {
+  const c = state.counts || {};
+  const parts = STATUSES.map((s) => `<b>${c[s] ?? 0}</b> ${s}`).join('  ');
+  return parts + (c.stale ? `  <span class="stale">${c.stale} stale</span>` : '');
+}
+
+function card(task) {
+  const node = document.createElement('div');
+  node.className = 'card' + (isStale(task) ? ' stale' : '');
+  node.dataset.id = task.id;
+  node.dataset.status = task.status;
+  node.draggable = true;
+
+  const title = document.createElement('div');
+  title.className = 'title';
+  // textContent, never innerHTML: a task title is untrusted input.
+  title.textContent = task.title;
+  node.append(title);
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  const bits = [`<span>${task.id}</span>`, `<span>${escapeHtml(task.project)}</span>`];
+  if (task.priority !== 'normal') bits.push(`<span class="pri-${task.priority}">${task.priority}</span>`);
+  if (task.notes.length) bits.push(`<span>${task.notes.length} note${task.notes.length > 1 ? 's' : ''}</span>`);
+  if (task.claim) {
+    const stale = isStale(task);
+    bits.push(
+      `<span class="claim">${escapeHtml(task.claim.session)}</span>` +
+        `<span class="${stale ? 'stale-badge' : ''}">${stale ? 'lease EXPIRED' : leaseLeft(task.claim)}</span>`,
+    );
+  }
+  meta.innerHTML = bits.join('');
+  node.append(meta);
+
+  node.onclick = () => openDetail(task.id);
+  node.addEventListener('dragstart', (event) => {
+    event.dataTransfer.setData('text/plain', task.id);
+    event.dataTransfer.effectAllowed = 'move';
+    node.classList.add('dragging');
+  });
+  node.addEventListener('dragend', () => node.classList.remove('dragging'));
+  return node;
+}
+
+function render() {
+  el('counts').innerHTML = countsLine();
+  const board = el('board');
+  board.textContent = '';
+  const projects = [...new Set(state.tasks.map((t) => t.project))].sort();
+  const picker = el('new-project');
+  if (picker.options.length !== projects.length + 1) {
+    picker.textContent = '';
+    for (const p of ['inbox', ...projects.filter((x) => x !== 'inbox')]) picker.append(new Option(p, p));
+    picker.value = projects.includes('inbox') ? 'inbox' : (projects[0] || 'inbox');
+  }
+
+  for (const status of STATUSES) {
+    const col = document.createElement('div');
+    col.className = 'col';
+    col.dataset.status = status;
+
+    let tasks = state.tasks.filter((t) => t.status === status);
+    if (status === 'done') tasks = tasks.slice(-25); // done accumulates forever
+    // Open work reads oldest first so nothing quietly ages at the bottom; finished
+    // work reads newest first.
+    tasks.sort((a, b) => {
+      if (a.priority !== b.priority) return (a.priority === 'high' ? -1 : a.priority === 'low' ? 1 : 0) - (b.priority === 'high' ? -1 : b.priority === 'low' ? 1 : 0);
+      return status === 'done' ? b.updatedAt.localeCompare(a.updatedAt) : a.createdAt.localeCompare(b.createdAt);
+    });
+
+    const head = document.createElement('h2');
+    const label = document.createElement('span');
+    label.textContent = status;
+    const count = document.createElement('span');
+    count.textContent = tasks.length;
+    head.append(label, count);
+    col.append(head);
+
+    for (const task of tasks) col.append(card(task));
+
+    col.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      col.classList.add('over');
+    });
+    col.addEventListener('dragleave', () => col.classList.remove('over'));
+    col.addEventListener('drop', async (event) => {
+      event.preventDefault();
+      col.classList.remove('over');
+      const id = event.dataTransfer.getData('text/plain');
+      const task = state.tasks.find((t) => t.id === id);
+      if (!task || task.status === status) return;
+      try {
+        // Dropping onto "doing" is a claim, so the lease is taken properly rather
+        // than only flipping a status.
+        if (status === 'doing') await api(`/api/tasks/${id}/claim`, 'POST', { session: actor(), host: 'browser', repo: '' });
+        else await api(`/api/tasks/${id}/status`, 'POST', { status, session: actor() });
+      } catch (error) {
+        toast(error.payload ? explain(error.payload) : error.message);
+      }
+    });
+    board.append(col);
+  }
+}
+
+// ------------------------------------------------------------------ detail
+function openDetail(id) {
+  selected = state.tasks.find((t) => t.id === id) || null;
+  if (!selected) return;
+  el('d-title').textContent = `${selected.id}  ${selected.title}`;
+  el('d-meta').textContent =
+    `${selected.status}  ${selected.project}  ${selected.priority}` +
+    (selected.claim ? `  claimed by ${selected.claim.session} (${isStale(selected) ? 'lease expired' : leaseLeft(selected.claim)})` : '  unclaimed');
+  const notes = el('d-notes');
+  notes.textContent = '';
+  for (const note of selected.notes) {
+    const div = document.createElement('div');
+    div.className = 'note';
+    const b = document.createElement('b');
+    b.textContent = `${note.by}: `;
+    div.append(b, document.createTextNode(note.text));
+    notes.append(div);
+  }
+  el('detail').showModal();
+}
+
+async function act(fn) {
+  try {
+    await fn();
+    el('detail').close();
+  } catch (error) {
+    toast(error.payload ? explain(error.payload) : error.message);
+  }
+}
+
+el('d-claim').onclick = () => act(() => api(`/api/tasks/${selected.id}/claim`, 'POST', { session: actor(), host: 'browser', repo: '' }));
+el('d-done').onclick = () => act(() => api(`/api/tasks/${selected.id}/status`, 'POST', { status: 'done', session: actor() }));
+el('d-block').onclick = () => act(() => api(`/api/tasks/${selected.id}/status`, 'POST', { status: 'blocked', session: actor() }));
+el('d-release').onclick = () => act(() => api(`/api/tasks/${selected.id}/release`, 'POST', { session: actor(), reason: 'released from the board', status: 'todo' }));
+el('d-remove').onclick = () => act(() => api(`/api/tasks/${selected.id}`, 'DELETE', { session: actor() }));
+el('d-notebtn').onclick = () => {
+  const text = el('d-note').value.trim();
+  if (!text) return;
+  el('d-note').value = '';
+  act(() => api(`/api/tasks/${selected.id}/note`, 'POST', { text, session: actor() }));
+};
+el('d-close').onclick = () => el('detail').close();
+
+// ------------------------------------------------------------------- create
+el('create').onclick = async () => {
+  const title = el('new-title').value.trim();
+  if (!title) return;
+  try {
+    await api('/api/tasks', 'POST', {
+      title,
+      project: el('new-project').value,
+      priority: el('new-priority').value,
+      session: actor(),
+    });
+    el('new-title').value = '';
+  } catch (error) {
+    toast(error.message);
+  }
+};
+el('new-title').addEventListener('keydown', (e) => { if (e.key === 'Enter') el('create').click(); });
+
+// ----------------------------------------------------------------- helpers
+function isStale(task) {
+  return Boolean(task.claim && new Date(task.claim.leaseUntil).getTime() < Date.now());
+}
+function leaseLeft(claim) {
+  const mins = Math.round((new Date(claim.leaseUntil).getTime() - Date.now()) / 60000);
+  if (mins <= 0) return 'lease EXPIRED';
+  return mins < 60 ? `${mins}m left` : `${Math.round(mins / 60)}h left`;
+}
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+}
+function explain(payload) {
+  if (payload.reason === 'held') return `held by ${payload.holder?.session} (${payload.holder ? leaseLeft(payload.holder) : ''})`;
+  if (payload.reason === 'not-holder') return `only ${payload.holder?.session} holds this`;
+  if (payload.reason === 'already-done') return 'already done, reopen it first';
+  return payload.reason || 'refused';
+}
+let toastTimer;
+function toast(message) {
+  let node = el('toast');
+  if (!node) {
+    node = document.createElement('div');
+    node.id = 'toast';
+    node.style.cssText = 'position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);background:#241f14;border:1px solid #d29922;color:#e6edf3;padding:.5rem .75rem;border-radius:6px;z-index:20';
+    document.body.append(node);
+  }
+  node.textContent = message;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => node.remove(), 4000);
+}
+
+// Boot: if the cookie is already good, /api/state answers and we are in; otherwise
+// show the token gate.
+if (sessionStorage.getItem('tasks.authed')) show();
+else {
+  fetch('/api/state')
+    .then((res) => { if (res.ok) show(); else el('gate').hidden = false; })
+    .catch(() => { el('gate').hidden = false; });
+}
+</script>
+</body>
+</html>

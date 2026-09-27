@@ -1,0 +1,22 @@
+[Unit]
+Description=Task board (tasks) for agent and human coordination
+Documentation=https://github.com/ravi-arnan/agent-harness
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/agent-harness/tasks
+# /usr/bin/env keeps this working whether node is at /usr/bin/node or a profile path.
+ExecStart=/usr/bin/env node %h/agent-harness/tasks/server.mjs
+Environment=TASKS_HOST=127.0.0.1
+Environment=TASKS_PORT=4178
+# Durable data lives in XDG data, the token in XDG config.
+Environment=TASKS_DATA_DIR=%h/.local/share/tasks
+Restart=on-failure
+RestartSec=5
+# Give in-flight writes a moment to finish rather than killing the log mid-append.
+TimeoutStopSec=15
+
+[Install]
+WantedBy=default.target

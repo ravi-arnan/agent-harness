@@ -24,8 +24,12 @@ function findEslintRoot(file) {
   let dir = dirname(file);
   while (true) {
     if (CONFIGS.some((c) => existsSync(join(dir, c)))) return dir;
-    if (dir === root) return null;
-    dir = dirname(dir);
+    // `dir === root` only catches absolute paths. A relative path that reaches
+    // "." has dirname(".") === ".", so the walk would spin forever; stop when
+    // the parent stops making progress.
+    const parent = dirname(dir);
+    if (dir === root || parent === dir) return null;
+    dir = parent;
   }
 }
 

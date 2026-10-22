@@ -58,7 +58,10 @@ Symlinked, so the machine always reflects the kit:
 | `~/.config/opencode/tui.json` | `harnesses/opencode/tui.json` |
 | `~/.config/opencode/command/resume.md` | `harnesses/opencode/command-local/resume.md` |
 | `~/.config/opencode/command/worktree.md` | `harnesses/opencode/command-local/worktree.md` |
+| `~/.gemini/statusline.sh` | `harnesses/antigravity/statusline.sh` |
+| `~/.gemini/statusline.py` | `harnesses/antigravity/statusline.py` |
 | `~/.local/bin/tasks` | `tasks/cli.mjs` |
+| `~/.local/bin/skills-doctor` | `skills-doctor/cli.mjs` |
 
 Generated, because they differ per machine:
 
@@ -114,6 +117,29 @@ Nothing about the board is required for the rest of the kit to work. If no serve
 configured the CLI says so and exits 2, and agents are told to report that rather than
 pretend they recorded something.
 
+## Skills doctor
+
+`skills-doctor` is a read-only sweep of every agent skills root on the machine, the
+counterpart to `harness.mjs doctor` on the skills side. It reports the things that
+otherwise fail silently:
+
+- skills the harness skips: a name that does not match its directory, or a missing
+  description
+- dangling symlinks inside a skills root
+- the same skill kept in several roots with different content (`drift`). Equal copies and
+  copies that resolve to one directory through a symlink are summarised, not listed
+- the token cost of the catalog Command Code loads every session, with shadowed
+  duplicates named
+
+```bash
+skills-doctor                          # audit; exit 1 when there is something to fix
+skills-doctor --json                   # machine-readable output
+skills-doctor --project ~/Projects/foo # resolve project roots against another directory
+```
+
+It never writes, so it is safe in a hook or CI. `--root <dir>` adds an extra skills
+directory, and `--no-global` or `--no-project` narrow the scan.
+
 ## What is deliberately not in this repo
 
 No credentials, and no personal context. Specifically:
@@ -130,6 +156,7 @@ No credentials, and no personal context. Specifically:
 ```bash
 node ~/agent-harness/harness.mjs status     # kit vs machine, exit 1 on drift
 node ~/agent-harness/harness.mjs doctor     # preflight and missing secrets
+skills-doctor                               # audit every agent skills root, exit 1 on drift
 git -C ~/agent-harness pull                 # update every harness at once
 ```
 
@@ -167,6 +194,8 @@ harnesses/         per-CLI config: opencode base + plugins, Antigravity config
 profiles/          per-machine overlays
 scripts/           sanitize.mjs, the Antigravity hook adapter, Claude Code helpers
 site/              the landing page served by GitHub Pages
+tasks/             the durable task board (CLI, server, store). See tasks/README.md.
+skills-doctor/     read-only audit of every agent skills root.
 harness.mjs        the engine: install, uninstall, status, doctor, render, link
 ```
 

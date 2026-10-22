@@ -68,9 +68,14 @@ const LINKS = [
   // they would silently not exist on a new machine.
   ['~/.config/opencode/command/resume.md', 'harnesses/opencode/command-local/resume.md'],
   ['~/.config/opencode/command/worktree.md', 'harnesses/opencode/command-local/worktree.md'],
+  // Antigravity CLI statusline (context window + quota indicator in TUI).
+  ['~/.gemini/statusline.sh', 'harnesses/antigravity/statusline.sh'],
+  ['~/.gemini/statusline.py', 'harnesses/antigravity/statusline.py'],
   // The task board CLI, so agents can just call `tasks`. Needs ~/.local/bin on
   // PATH; install.sh warns when it is not.
   ['~/.local/bin/tasks', 'tasks/cli.mjs'],
+  // Read-only audit of every skills root on the machine.
+  ['~/.local/bin/skills-doctor', 'skills-doctor/cli.mjs'],
 ];
 
 // Generated files. mode:
@@ -441,6 +446,58 @@ function runSync() {
   }
 }
 
+function agySettingsState() {
+  const target = expand('~/.gemini/antigravity-cli/settings.json');
+  if (!existsSync(target)) return { target, ok: false, reason: 'missing' };
+  try {
+    const current = parseJsonc(readFileSync(target, 'utf8'));
+    const desired = expand('~/.gemini/statusline.sh');
+    const enabled = current.statusLine?.enabled === true;
+    const cmdMatch = current.statusLine?.command === desired || current.statusLine?.command === '~/.gemini/statusline.sh';
+    const stackMatch = current.stack_with_default === true;
+    if (enabled && cmdMatch && stackMatch) return { target, ok: true };
+    return { target, ok: false, reason: 'statusLine not configured or differs' };
+  } catch (e) {
+    return { target, ok: false, reason: `cannot parse (${e.message})` };
+  }
+}
+
+function applyAgySettings({ dryRun = false } = {}) {
+  const state = agySettingsState();
+  if (state.ok) return 0;
+  const target = state.target;
+  let current = {};
+  if (existsSync(target)) {
+    try {
+      current = parseJsonc(readFileSync(target, 'utf8'));
+    } catch {
+      warn(`could not parse ${target}, skipping statusLine configuration`);
+      return 0;
+    }
+  }
+
+  const updated = {
+    ...current,
+    stack_with_default: true,
+    statusLine: {
+      ...(current.statusLine || {}),
+      type: '',
+      command: expand('~/.gemini/statusline.sh'),
+      enabled: true,
+    },
+  };
+
+  if (dryRun) {
+    log(`[dry-run] configure statusLine in ${target}`);
+    return 1;
+  }
+
+  mkdirSync(dirname(target), { recursive: true });
+  writeFileSync(target, `${JSON.stringify(updated, null, 2)}\n`);
+  log(`antigravity: configured statusLine in ${target}`);
+  return 1;
+}
+
 // ------------------------------------------------------------------- status
 function status() {
   const profile = resolveProfile(getOpt('profile'));
@@ -471,6 +528,9 @@ function status() {
       for (const line of detail) problems.push(`opencode assets: ${line}`);
     }
   }
+
+  const agy = agySettingsState();
+  if (!agy.ok) problems.push(`antigravity settings: ${agy.reason} (${agy.target})`);
 
   if (!problems.length) {
     log(`clean: kit == machine (profile ${profile})`);
@@ -556,6 +616,9 @@ function doctor() {
     notes.push('N8N_URL unset, n8n MCP entry will be dropped at render time (intended if you have no tunnel)');
   }
 
+  const agy = agySettingsState();
+  if (!agy.ok) notes.push(`antigravity settings: ${agy.reason} (run harness install to configure statusLine)`);
+
   log(`profile: ${profile}`);
   log(`kit:     ${KIT}`);
   for (const n of notes) log(`note: ${n}`);
@@ -591,6 +654,7 @@ function install() {
   writeState(profile);
   applyLinks({ backupDir, profile });
   applyRenders({ backupDir, profile });
+  applyAgySettings({ dryRun: DRY_RUN });
 
   if (!DRY_RUN) {
     mkdirSync(SECRETS_DIR, { recursive: true, mode: 0o700 });
@@ -646,6 +710,25 @@ function uninstall() {
     rmSync(target);
     removed++;
   }
+
+  const agyTarget = expand('~/.gemini/antigravity-cli/settings.json');
+  if (existsSync(agyTarget)) {
+    try {
+      const s = parseJsonc(readFileSync(agyTarget, 'utf8'));
+      if (s.statusLine || s.stack_with_default) {
+        delete s.statusLine;
+        delete s.stack_with_default;
+        if (DRY_RUN) {
+          log(`[dry-run] remove statusLine from ${agyTarget}`);
+        } else if (Object.keys(s).length === 0) {
+          rmSync(agyTarget);
+        } else {
+          writeFileSync(agyTarget, `${JSON.stringify(s, null, 2)}\n`);
+        }
+      }
+    } catch {}
+  }
+
   log(`uninstall: ${removed} item(s) removed`);
   if (!DRY_RUN) rmSync(STATE_FILE, { force: true });
 

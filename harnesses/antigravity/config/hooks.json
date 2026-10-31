@@ -25,5 +25,28 @@
         ]
       }
     ]
+  },
+  "thermal-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node {{KIT}}/scripts/hook-thermal-guard-anty.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "session-memory": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "node {{KIT}}/scripts/hook-session-memory-anty.mjs",
+        "timeout": 10
+      }
+    ]
   }
 }

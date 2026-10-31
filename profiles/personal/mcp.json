@@ -51,6 +51,16 @@
       "args": ["-y", "@playwright/mcp", "--browser", "chrome"],
       "description": "Browser automation. Heavy on this laptop, enable only when needed."
     },
+    "lightpanda": {
+      "command": "lightpanda",
+      "args": ["mcp"],
+      "description": "Ultra-lightweight headless browser for web extraction, navigation, and searching without high CPU/RAM overhead."
+    },
+    "openscreen": {
+      "command": "openscreen",
+      "args": ["mcp"],
+      "description": "OpenScreen screen recording and automated video editing"
+    },
     // Multi-agent orchestration over a local daemon. Harmless when the daemon
     // is not running, but useless then too.
     "devfleet": {

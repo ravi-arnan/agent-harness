@@ -277,4 +277,10 @@ test('release returns a task to the pool and records why', (t) => {
   const notHolder = h.store.claim('T-1', { by: 'sess-a' });
   assert.equal(notHolder.ok, true);
   assert.equal(h.store.release('T-1', { by: 'sess-b' }).reason, 'not-holder');
+
+  const forced = h.store.release('T-1', { by: 'sess-b', reason: 'force released', force: true });
+  assert.equal(forced.ok, true);
+  assert.equal(h.store.get('T-1').status, 'todo');
+  assert.equal(h.store.get('T-1').claim, undefined);
+  assert.match(h.store.get('T-1').notes.at(-1).text, /force released/);
 });

@@ -203,7 +203,7 @@ async function handle(req, res) {
     let result;
     if (action === 'claim') result = store.claim(id, { by: session, host: body.host, repo: body.repo, leaseMs: body.leaseMs });
     else if (action === 'heartbeat') result = store.heartbeat(id, { by: session, leaseMs: body.leaseMs });
-    else if (action === 'release') result = store.release(id, { by: session, reason: body.reason, status: body.status });
+    else if (action === 'release') result = store.release(id, { by: session, reason: body.reason, status: body.status, force: Boolean(body.force) });
     else if (action === 'note') result = store.note(id, body.text, session);
     else if (action === 'status') result = store.setStatus(id, body.status, session);
     else return json(res, 405, { ok: false, reason: 'method-not-allowed' });

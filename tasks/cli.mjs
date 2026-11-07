@@ -318,7 +318,7 @@ const COMMANDS = {
     if (status !== 200 && payload.reason === 'held' && flags.force) {
       // Take over explicitly: release then claim, so the takeover is two auditable
       // events rather than a silent steal.
-      await post(config, `/api/tasks/${id}/release`, { session, reason: `force-released by ${session}`, status: 'todo' });
+      await post(config, `/api/tasks/${id}/release`, { session, reason: `force-released by ${session}`, status: 'todo', force: true });
       ({ status, payload } = await post(config, `/api/tasks/${id}/claim`, { session, host: hostname(), repo }));
     }
     if (status !== 200) {
@@ -388,8 +388,9 @@ const COMMANDS = {
       session,
       reason: flags.message || `released by ${session}`,
       status: 'todo',
+      force: Boolean(flags.force),
     });
-    if (status !== 200 && !flags.force) {
+    if (status !== 200) {
       console.error(`${id}: ${explain(payload)}`);
       return REFUSED;
     }

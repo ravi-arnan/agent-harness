@@ -6,11 +6,14 @@
 
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawn, execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+
+const execFileAsync = promisify(execFile);
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PORT = 42000 + Math.floor(Math.random() * 5000);
@@ -30,6 +33,17 @@ async function api(path, method = 'GET', body, headers = auth) {
   });
   const text = await res.text();
   return { status: res.status, payload: text ? JSON.parse(text) : {} };
+}
+
+async function runCli(args, session = 'sess-cli') {
+  try {
+    const { stdout, stderr } = await execFileAsync(process.execPath, [join(HERE, 'cli.mjs'), ...args], {
+      env: { ...process.env, TASKS_URL: BASE, TASKS_TOKEN: TOKEN, TASKS_SESSION: session },
+    });
+    return { code: 0, stdout, stderr };
+  } catch (err) {
+    return { code: err.code ?? 1, stdout: err.stdout || '', stderr: err.stderr || '' };
+  }
 }
 
 before(async () => {
@@ -132,6 +146,14 @@ test('HTTP codes distinguish refusal from bad input from missing', async () => {
   assert.equal(held.payload.reason, 'held');
   // non-holder cannot close
   assert.equal((await api(`/api/tasks/${id}/status`, 'POST', { status: 'done', session: 'sess-b' })).status, 409);
+  // non-holder cannot release without force
+  const refusedRelease = await api(`/api/tasks/${id}/release`, 'POST', { session: 'sess-b' });
+  assert.equal(refusedRelease.status, 409);
+  assert.equal(refusedRelease.payload.reason, 'not-holder');
+  // non-holder can release with force
+  const forcedRelease = await api(`/api/tasks/${id}/release`, 'POST', { session: 'sess-b', force: true, reason: 'forced' });
+  assert.equal(forcedRelease.status, 200);
+  assert.equal(forcedRelease.payload.task.claim, undefined);
   // validation
   assert.equal((await api('/api/tasks', 'POST', { title: '' })).status, 400);
   // missing
@@ -227,4 +249,39 @@ test('the store file is the durable artifact and survives a restart', async () =
   const task = state.payload.tasks.find((t) => t.id === id);
   assert.ok(task, 'the task is still there after a restart');
   assert.equal(task.title, 'must survive');
+});
+
+test('CLI: release with and without --force, and start --force', async () => {
+  const created = await api('/api/tasks', 'POST', { title: 'cli force test', session: 'sess-a' });
+  const id = created.payload.task.id;
+
+  // Claim with sess-a
+  const startA = await runCli(['start', id], 'sess-a');
+  assert.equal(startA.code, 0);
+
+  // sess-b tries to release without --force -> refused (exit code 1)
+  const relB = await runCli(['release', id], 'sess-b');
+  assert.equal(relB.code, 1);
+  assert.match(relB.stderr, /only sess-a holds this/);
+
+  // sess-b releases with --force -> success (exit code 0)
+  const relForceB = await runCli(['release', id, '--force'], 'sess-b');
+  assert.equal(relForceB.code, 0);
+  assert.match(relForceB.stdout, new RegExp(`released ${id}`));
+
+  // Verify task is now unclaimed in store
+  const check = await api(`/api/tasks/${id}`);
+  assert.equal(check.payload.task.claim, undefined);
+  assert.equal(check.payload.task.status, 'todo');
+
+  // sess-a claims it again
+  await runCli(['start', id], 'sess-a');
+
+  // sess-b takes it over with start --force -> success (exit code 0)
+  const startForceB = await runCli(['start', id, '--force'], 'sess-b');
+  assert.equal(startForceB.code, 0);
+  assert.match(startForceB.stdout, new RegExp(`claimed ${id}`));
+
+  const check2 = await api(`/api/tasks/${id}`);
+  assert.equal(check2.payload.task.claim.session, 'sess-b');
 });

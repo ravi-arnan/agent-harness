@@ -210,10 +210,10 @@ export function createStore({ file, now = () => Date.now() }) {
     return { ok: true, task: get(id) };
   }
 
-  function release(id, { by, reason = 'released', status = 'todo' }) {
+  function release(id, { by, reason = 'released', status = 'todo', force = false }) {
     const task = get(id);
     if (!task) return { ok: false, reason: 'not-found' };
-    if (task.claim && task.claim.session !== by && !isStale(task)) {
+    if (task.claim && task.claim.session !== by && !isStale(task) && !force) {
       return { ok: false, reason: 'not-holder', holder: task.claim };
     }
     log({ ts: iso(now()), type: 'released', id, by, status });

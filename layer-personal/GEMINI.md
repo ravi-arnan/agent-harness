@@ -41,7 +41,16 @@ Kode terbaik adalah kode yang tidak perlu ditulis. Sebelum menulis kode baru, ev
 
 ---
 
-## 6. Konteks: lazy-load, jangan baca semuanya di awal
+## 6. Disiplin Penalaran & Anti-Loop (Stabil & Seimbang)
+Sebagai pengganti sequential thinking eksternal yang lambat dan rawan loop, gunakan alur penalaran terukur:
+1. **Trace Sebelum Edit**: Wajib baca file target dan pahami alur pemanggil atau dependensinya sebelum mengubah kode. Dilarang mengasumsikan implementasi tanpa membaca file aslinya.
+2. **Minimal Blast Radius**: Rancang perubahan sekecil mungkin yang menyelesaikan akar masalah (bukan sekadar menambal gejala). Hindari refactor di luar cakupan tugas.
+3. **Circuit Breaker (Maksimal 2 Percobaan)**: Jika perbaikan bug atau eksekusi error gagal 2 kali berturut-turut, STOP. Dilarang mencoba tebakan ketiga secara spekulatif. Mundur selangkah, analisis log error, dan diskusikan opsi berikutnya dengan Ravi sebelum mencoba lagi.
+4. **Verifikasi Biner**: Solusi hanya dianggap selesai jika terbukti lolos uji objektif (unit test, build/linter bersih, atau curl valid).
+
+---
+
+## 7. Konteks: lazy-load, jangan baca semuanya di awal
 
 Router konteks ada di `~/.config/opencode/router.md`. Isinya sama untuk semua
 harness: aturan per-stack tinggal di `~/.claude/rules/ecc/<stack>/` dan baru
@@ -58,7 +67,7 @@ Checklist singkat:
 
 ---
 
-## 7. Skills
+## 8. Skills
 
 Skills dipakai bersama antar harness, tidak disalin. Paket lengkapnya ada di
 `~/.claude/skills` (ECC) dan `~/.config/opencode/skills`, dan didaftarkan ke
@@ -70,7 +79,7 @@ dan Spec Mining bila diperlukan.
 
 ---
 
-## 8. Papan tugas (tasks)
+## 9. Papan tugas (tasks)
 
 Ada papan tugas bersama di server, dipakai bersama sesi agent lain dan browser.
 Perintahnya `tasks` (fallback: `node ~/agent-harness/tasks/cli.mjs`).

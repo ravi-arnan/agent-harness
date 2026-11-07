@@ -71,6 +71,12 @@ Fix bug = akar masalah, bukan gejala. Grep semua pemanggil fungsi yang mau
 diubah. Satu guard di fungsi bersama itu diff lebih kecil daripada guard di
 tiap pemanggil, dan menambal satu jalur saja meninggalkan jalur lain tetap rusak.
 
+Anti-loop & anti-guessing:
+- Maksimal dua kali percobaan perbaikan pada error yang sama. Kalau dua kali gagal,
+  berhenti, jangan tebak-tebakan. Jelaskan hipotesis yang buntu dan diskusikan arah.
+- Trace dulu alur pemanggil dan dependensi sebelum edit, jangan berasumsi implementasi
+  tanpa membaca file.
+
 Aturan lain:
 
 - Tidak ada abstraksi yang tidak diminta: jangan bikin interface untuk satu

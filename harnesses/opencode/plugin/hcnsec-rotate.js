@@ -1,4 +1,4 @@
-/** HCN SEC: rotasi API key (round-robin) khusus host itu, provider lain tidak tersentuh. Pool di secrets/hcnsec.keys (satu key per baris). Pola sama seperti plugin/agentrouter-headers.js. */
+/** HCN SEC: rotasi API key (round-robin) khusus host itu, provider lain tidak tersentuh. Pool di secrets/hcnsec.keys (satu key per baris). */
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";

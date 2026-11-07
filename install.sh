@@ -197,12 +197,14 @@ else
   say "warning: harness.mjs status reports drift, run it for details"
 fi
 
-# The task board CLI is linked into ~/.local/bin, which is not on PATH everywhere.
+# The task board and skills-doctor CLIs are linked into ~/.local/bin, which is
+# not on PATH everywhere.
 case ":$PATH:" in
   *":$HOME/.local/bin:"*) ;;
   *) say ""
-     say "note: $HOME/.local/bin is not on your PATH, so the 'tasks' command will not"
-     say "      resolve. Add it, or call it as: node $KIT/tasks/cli.mjs" ;;
+     say "note: $HOME/.local/bin is not on your PATH, so the 'tasks' and"
+     say "      'skills-doctor' commands will not resolve. Add it, or call them"
+     say "      as: node $KIT/tasks/cli.mjs" ;;
 esac
 
 say ""

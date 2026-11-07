@@ -1,7 +1,7 @@
 
 ---
 
-## 8. Mesin kantor
+## 10. Mesin kantor
 
 Ini laptop kerja, akun dan kredensialnya milik kantor.
 

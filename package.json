@@ -7,7 +7,7 @@
     "@opencode-ai/plugin": "1.18.18"
   },
   "scripts": {
-    "test": "node --test tasks/store.test.mjs tasks/server.test.mjs",
+    "test": "node --test tasks/store.test.mjs tasks/server.test.mjs skills-doctor/cli.test.mjs",
     "smoke": "bash scripts/smoke-test.sh",
     "sanitize": "node scripts/sanitize.mjs"
   }

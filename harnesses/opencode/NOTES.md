@@ -46,9 +46,16 @@ Other traps worth remembering:
   upstream. That is the price of free. It is not for client repositories.
 - `zen` slugs ending `-free` only work from inside the real opencode client.
   A plain HTTP request is rejected with `FreeTierError`.
-- AgentRouter needs `plugin/agentrouter-headers.js` (a Claude Code fingerprint);
-  the WAF rejects bare requests. Some prompts trip `content-blocked` on the
-  agentic request shape even when the same prompt passes via raw curl.
+- AgentRouter was removed 28 Sep 2026: the key got 401 (`unauthorized client
+  detected`) and its `plugin/agentrouter-headers.js` fingerprint helper went
+  with it. Re-registering needs both back.
+- Makers (EdgeOne), Experiential (`gpt-5.6-luna`, then the default model) and
+  Atria were removed 15 Oct 2026: `AIG_FREE_QUOTA_EXHAUSTED`,
+  `insufficient_credits`, `Token quota exhausted` respectively, all verified
+  with a real request. The custom `zen` block went too: the built-in `opencode`
+  provider reaches the same backend without a key file. Default is now
+  `opencode/deepseek-v4.1-flash-free`. Orphan keys under
+  `~/.config/opencode/secrets/` were deleted with them.
 
 Provider-by-provider probe history is not reproduced here because it went stale
 within weeks. What matters is the shape of the failure: free gateways rotate,

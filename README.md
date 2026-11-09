@@ -133,8 +133,17 @@ otherwise fail silently:
 
 ```bash
 skills-doctor                          # audit; exit 1 when there is something to fix
+skills-doctor --top 5                  # rank top 5 skills by metadata token footprint
+skills-doctor --budget 4000            # enforce token budget threshold in CI
+skills-doctor --fix                    # repair mismatched folder names and remove broken symlinks
 skills-doctor --json                   # machine-readable output
 skills-doctor --project ~/Projects/foo # resolve project roots against another directory
+```
+
+Also published standalone on npm as [`agent-skills-doctor`](https://www.npmjs.com/package/agent-skills-doctor):
+
+```bash
+npx agent-skills-doctor
 ```
 
 It never writes, so it is safe in a hook or CI. `--root <dir>` adds an extra skills

@@ -1,21 +1,25 @@
 # Project Handoff Status
 
-- **Tanggal & Waktu**: 2026-11-09 17:28 WITA
+- **Tanggal & Waktu**: 2026-11-10 23:40 WITA
 - **Branch**: main
 
 ## Status Terakhir
-- Memasang dan mengaktifkan service daemon task board `tasks.service` via systemd user (listening pada `http://127.0.0.1:4178`, konsumsi RAM ~20 MB, CPU 0% saat idle).
-- Menyelaraskan dan merilis `agent-skills-doctor` sebagai package open source mandiri ke npm (versi `1.0.0` dan `1.1.0`) serta GitHub repo (`ravi-arnan/agent-skills-doctor`).
-- Menambahkan fitur baru ke `skills-doctor`: `--top <n>` (ranking token bloat), `--budget <n>` (token limit CI gate), `--fix` (auto-remediation), dan `action.yml` untuk GitHub Actions.
-- Membersihkan isu invalid skill di mesin lokal dengan merename `layer-personal/skills/taste-skill` menjadi `design-taste-frontend` (kini `invalid: 0`).
-- Menyelesaikan MCP drift pada `mcp_config.json` via `harness.mjs render` (status kit == machine).
+- Mengintegrasikan Google Chrome Modern Web Guidance (`modern-web-guidance`), Supabase Best Practices (`supabase`), dan Vercel Guidelines (`vercel`) ke dalam `~/.claude/skills-library/` secara on-demand tanpa menambah token di system prompt harian.
+- Membuat wrapper CLI lokal ringan `~/.local/bin/mwg` berbasis cache npx offline (`mwg search`, `mwg retrieve`, `mwg legacy-scan`).
+- Memperbarui `layer-ecc/rules/web/patterns.md` dengan panduan Native Platform & Modern Standards (Baseline First).
+- Memperbarui `layer-ecc/rules/web/coding-style.md` dengan aturan Tailwind CSS v4 First (mencegah pembuatan `tailwind.config.js` v3).
+- Memperbarui daftar katalog router di `layer-personal/skills/skill-library/SKILL.md` (menjadi 31 library skills).
+- Memverifikasi integritas harness (`harness.mjs status` berstatus `clean: kit == machine`).
+- Seluruh perubahan telah di-commit (`4d590f7`) dan di-push ke `origin/main`.
 
 ## Berkas Yang Diubah
-- `README.md`
-- `HANDOFF.md`
-- `skills-doctor/cli.mjs`
-- `skills-doctor/cli.test.mjs`
-- `layer-personal/skills/design-taste-frontend/` (direname dari `taste-skill`)
+- `layer-ecc/rules/web/coding-style.md`
+- `layer-ecc/rules/web/patterns.md`
+- `layer-personal/skills/skill-library/SKILL.md`
+- `~/.local/bin/mwg`
+- `~/.claude/skills-library/modern-web-guidance/SKILL.md`
+- `~/.claude/skills-library/supabase/SKILL.md`
+- `~/.claude/skills-library/vercel/SKILL.md`
 
 ## Next Action (Langkah Selanjutnya)
-- Menyinkronkan 14 salinan skill yang mengalami drift antar direktori `.claude/skills` dan `.commandcode/skills`.
+- Gunakan `mwg` atau panggil skill dari `skill-library` saat mengerjakan project frontend/web atau integrasi Supabase.

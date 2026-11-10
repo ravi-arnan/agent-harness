@@ -89,3 +89,16 @@ Persist shareable state in the URL:
 - Fetch independent data in parallel
 - Avoid parent-child request waterfalls
 - Prefetch likely next routes or states when justified
+
+## Native Platform & Modern Standards (Baseline First)
+
+Prioritize modern standard web capabilities over bloated JS libraries:
+- Overlays & Popups: Use `<dialog>` and Popover API instead of heavy custom modal libraries.
+- Layouts: Use CSS Grid, Subgrid, and Container Queries before adding layout JS or extra wrapper divs.
+- Animations: Use View Transitions API and `@starting-style` instead of custom JS animation engines when supported.
+
+When implementing or modernizing UI patterns, retrieve authoritative guidance on-demand:
+```bash
+mwg search "<query>"     # or: npx -y --prefer-offline modern-web-guidance search "<query>"
+mwg retrieve "<id>"      # read exact implementation pattern and fallback
+```

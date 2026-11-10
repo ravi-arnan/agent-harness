@@ -106,3 +106,11 @@ Do not reach for generic wrapper `div` stacks when a semantic element exists.
 - Hooks: `use` prefix (`useReducedMotion`)
 - CSS classes: kebab-case or utility classes
 - Animation timelines: camelCase with intent (`heroRevealTl`)
+
+## Tailwind CSS (v4 First)
+
+In Tailwind v4+ projects, configuration is CSS-first:
+- Import via `@import "tailwindcss";` in global CSS.
+- Configure themes via `@theme { --color-*: ...; }` inside CSS directly.
+- Do NOT create `tailwind.config.js` or `tailwind.config.ts` unless migrating legacy v3.
+- Do NOT use `@tailwind base; @tailwind components; @tailwind utilities;` in v4.
